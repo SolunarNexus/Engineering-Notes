@@ -1,5 +1,6 @@
 ### Where is access token
 An access token is stored in HTTP request's **Authorization header** (most secure). Also possible to store tokens in **cookies**, **query parameters** (less secure), **request body** (for some API calls, especially for OAuth 2.0 token exchanges) ![[Pasted image 20250317105359.png]]
+
 ### Real DB for unit testing
 Normally not required since unit tests verify behavior of individual components in isolation. However, an in-memory db might behave differently than production db. Set up a real db in cases when testing:
 1. **Database-Dependent Logic** - complex queries must match the actual db schema, db index and constraints might affect the results, in-memory db may behave differently than production db
@@ -45,3 +46,17 @@ END {
 ```
 
 The option `-type f` instead of `-name "*.java"` for command `find` will scan all regular files
+
+### Proper way of declaring constants in Java
+```Java
+(private/public) static final T NAME = VALUE; 
+```
+
+### Store git credentials for easier authentication
+When using authentication via HTTP protocol, you need to authenticate with username & password. To avoid typing your username & password repeatedly, store your credentials in cache via git credential manager:
+```bash
+git config --local credential.helper cache
+```
+This saves your credentials after authentication and you won't have to type your credentials so often. 
+> Note: this is a safer variant than storing your username & password in a plain-text file
+
