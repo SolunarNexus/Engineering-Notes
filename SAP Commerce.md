@@ -83,3 +83,10 @@ Finally, run
 ```
 ./license.sh -temp CPS_MSS
 ```
+### Property files mechanism
+Property files are specified and configured in `mainfest.json`. The first level is `local.properties` which is applied on **all** environments. Then there is `local-prod.properties`, `local-stage.properties`, and `local-dev.properties` that are each applied on their appropriate environment exclusively and they **override** values in `local.properties`. 
+In our specific case that is:
+- `local-prod.properties` is applied only in production
+- `local-stage.properties` is applied only on S1 environment
+- `local-dev.properties` is applied only on dev environments (D1, D2, D3)
+- `local-environment.properties` is applied only on local environment (gitlab pipeline)

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "General.md",
+                "file": "SAP Commerce.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "General"
+              "title": "SAP Commerce"
             }
           }
         ]
@@ -170,8 +170,8 @@
   },
   "active": "ba63140895bc3f91",
   "lastOpenFiles": [
-    "Index.md",
     "General.md",
+    "Index.md",
     "SAP Commerce.md",
     "README.md",
     "Code Culture/Overview.md"
