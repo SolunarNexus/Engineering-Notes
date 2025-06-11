@@ -40,3 +40,9 @@ sudo desktop-file-install appname.desktop
 ```
 
 - AppImageLauncher that supposedly does all the heavy lifting: https://github.com/TheAssassin/AppImageLauncher
+### Load .profile into ZSH terminal
+Add this command into `~/.zshrc` file
+```shell
+# Load common aliases, functions, env variables etc.
+[[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
+```
