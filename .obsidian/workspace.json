@@ -4,21 +4,19 @@
     "type": "split",
     "children": [
       {
-        "id": "ee105808b613e141",
+        "id": "82815fca01f2d72f",
         "type": "tabs",
         "children": [
           {
-            "id": "ba63140895bc3f91",
+            "id": "747ed83421128092",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "image",
               "state": {
-                "file": "SAP Commerce.md",
-                "mode": "source",
-                "source": false
+                "file": "Assets/Pasted image 20250312134300.png"
               },
-              "icon": "lucide-file",
-              "title": "SAP Commerce"
+              "icon": "lucide-image",
+              "title": "Pasted image 20250312134300"
             }
           }
         ]
@@ -168,13 +166,27 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "ba63140895bc3f91",
+  "active": "99ef9f44f1518326",
   "lastOpenFiles": [
-    "Git.md",
-    "General.md",
-    "Index.md",
-    "SAP Commerce.md",
+    "Assets/Pasted image 20250312134518.png",
+    "Assets/Pasted image 20250312134300.png",
+    "Assets/Pasted image 20250317105359.png",
+    "Assets/Pasted image 20250321093813.png",
+    "Assets/Pasted image 20250522134039.png",
+    "Assets/Screenshot 2025-05-21 at 11.29.21.png",
+    "Assets/Screenshot from 2024-11-19 14-23-12.png",
+    "Assets/Screenshot from 2025-04-09 16-12-28.png",
+    "Assets/Screenshot from 2025-06-10 14-26-44.png",
+    "Code Culture/Learning.md",
+    "Code Culture/Overview.md",
+    "Code Culture/Code Standard.md",
     "README.md",
-    "Code Culture/Overview.md"
+    "Local Testing.md",
+    "Linux.md",
+    "SAP Commerce.md",
+    "Index.md",
+    "General.md",
+    "Pasted image 20250522134039 1.png",
+    "Git.md"
   ]
 }
