@@ -52,5 +52,39 @@ The option `-type f` instead of `-name "*.java"` for command `find` will scan al
 (private/public) static final T NAME = VALUE; 
 ```
 
+### Services contract design
+- (cost per contract/service) complexity is not linear to size -> something is 2x bigger => it's 4x more complex
+- integration cost is not linear to the number of components -> add 1 service to n => affects n! dependencies
+- project cost = cost per contract/service + integration cost
+**GOAL:** have not too many, not too few services that are not too big and not too small
+**GOAL:** design not too small and not too big contracts that are **REUSABLE** = good contract
 
+![[Pasted image 20250708145555.png]]
+
+*Factoring down*: everything that is not used by all service, we are gonna factor down = extract into individual contract.
+
+*Factoring sideways*: everything that is not logically consistent, we are gonna factor sideways = extract into individual logically consistent contract.
+
+*Factoring up*: everything that is logically related, and repeated, we are gonna factor up = extract into a super-contract that is inherited by all related subcontracts.
+
+#### Factoring metrics
+- Balance out two counter forces: **too many granular contracts** vs. **too few complex, poorly factored contracts**
+ - Just one operation per contract is possible, but avoid it
+ - Optimal No. of operations: 3-5 and no more then 20 (no more than 12)
+ - Size is **NOT** the metric of contract quality
+ - Restrict contracts to `doSomething()` or `doOperation()`
+ - (consumer) What does it take to do it? I don't know and I don't care. Because the more I know, the more I care. The more I care, the more I am coupled to you. The more you change, I change = **BAD**
+ - If interaction is stateful, you are doing it wrong
+ - Avoid property-like operations (get/set)
+ - Empiric observation: `2.2` contracts per service, `0.7` parameters per operation
+
+While detailed design, the ==sketching== is really useful:
+ - start by naming contracts
+ - draw interaction diagrams to clarify and validate
+ - iterate on sketches and diagrams
+ - identify missing operations and contracts (you might discover behavior never thought before)
+ - solidify sketches by validating use cases
+ - **repeat** until churning subsides
+
+>__WISDOM__: The best contract you can witness is that is reused in hundreds of places across the system and has never changed.
 

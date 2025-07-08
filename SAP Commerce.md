@@ -100,7 +100,12 @@ The procedures of updating/inserting/deleting can be modified via **Interceptors
 Interceptors represent the logic that is executed before or after an object is saved/updated/deleted. In a way, interceptors are similar to SQL triggers but interceptors can be triggered before or after db operation, logic complexity is very high with access to app services (e.g. `FlexibleSearchService`). 
 
 ### How to update the type system
-Updating any `*-items.xml` file requires updating the type system as well via HAC portal:
+Updating any `*-items.xml` file requires updating the type system as well. This can be achieved either with:
+```bash
+cd {PROJECT_ROOT}/commerce_temp/hybris/bin/platform
+ant updatesystem
+```
+or via HAC:
 ![[Screenshot from 2025-06-10 14-26-44.png]]
 
 ### How to create a CronJob + logic
@@ -143,7 +148,7 @@ As with a creation of **every** new class, we need to update the respective `*-s
     <property name="baseSiteService" ref="baseSiteService"/>  
 </bean>
 ```
-And also update the respective `*-items.xml` file with new CronJob model definition:
+If you need special parameters for your new CronJob (e.g. content site) or different logic, update the respective `*-items.xml` file with new CronJob model definition:
 ```XML
 <itemtype code="SikoCustomCronJob" autocreate="true"
 generate="true" extends="CronJob">
@@ -155,6 +160,8 @@ generate="true" extends="CronJob">
 	</attributes>
 </itemtype>
 ```
+However, this is not always needed. If you don't have special requirements, you can use OOTB CronJob definition that is already defined in parent `items.xml` file.
+
 After bean definition, you need to perform clean build for example with `ant clean all`. 
 
 > __CAUTION__: Do not forget to [[SAP Commerce#How to update the type system|update the type system]] after modifying `*-items.xml` file.
@@ -233,3 +240,30 @@ You modify the existing models' attribute list in the corresponding `*-items.xml
 The attribute type can be simple as any existing type or a built-in Java type as well (e.g. `java.lang.String`, `java.lang.Double` etc.).
 
 > __CAUTION__: Do not forget to [[SAP Commerce#How to update the type system|update the type system]] after modifying `*-items.xml` file.
+### How to drop records from a table
+Change `MyItemType` with the **table name** of your interest and import this impex via HAC (Console → ImpEx import):
+```bash
+$targetType=MyItemType
+REMOVE $targetType[batchmode=true];itemtype(code)[unique=true]
+;$targetType
+```
+### How to update attribute(s) for all items
+Change `MyItemType` with the **table name**, specify the attribute of your interest and import this impex via HAC (Console → ImpEx import):
+```bash
+$targetType=MyItemType
+UPDATE $targetType[batchmode=true];itemtype(code)[unique=true];myAttribute
+;$targetType;""
+```
+It is possible to update as much attributes as you wish. However, note that this impex will change the attribute for **ALL** records. Useful for reverting to original state when populating a newly developed attribute.
+### When to use deploy with migration
+1. on typesystem change
+2. modification of type translations
+3. we add a new custom extension to the project
+4. on every commerce upgrade (due to possible type changes in the commerce core)
+In general, when there are modifications to `*-items.xml` or `*.properties` files.
+
+On deployment with migration, the same thing is executed as in manual [[SAP Commerce#How to update the type system|type system update]] with migration configuration defined in:
+```
+core-customize/sikob2c/sikob2cinitialdata/resources/update-cofig.json
+```
+
