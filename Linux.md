@@ -46,3 +46,14 @@ Add this command into `~/.zshrc` file
 # Load common aliases, functions, env variables etc.
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 ```
+### Launch custom scripts from anywhere
+Add your directory containing scripts (e.g. `~/scripts`) to your `$PATH` environment variable. Then you can run your `script-you-want-to-run` from anywhere as a command (but not like `./script-you-want-to-run` because `./` denotes the current directory).
+
+Read [[#Set `$PATH` environment variable for desktop session|this]] to understand how to change `$PATH` variable.
+### Set `$PATH` environment variable for desktop session
+In the file `~/.profile` add to the script:
+```shell
+if [ -d "$HOME/scripts" ] ; then
+  PATH="$PATH:$HOME/scripts"
+fi
+```
