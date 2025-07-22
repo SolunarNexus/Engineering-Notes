@@ -75,3 +75,7 @@ Concrete example can look like this:
 ```bash
 scp ~/b2x/commerce.zip administrator@10.1.254.96:~/Downloads 
 ```
+or
+```bash
+scp ~/b2x/commerce.zip ssh://administrator@10.1.254.96:~/Downloads 
+```
