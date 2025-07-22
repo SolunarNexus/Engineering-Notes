@@ -57,3 +57,21 @@ if [ -d "$HOME/scripts" ] ; then
   PATH="$PATH:$HOME/scripts"
 fi
 ```
+### Transfer files between two linux machines
+This can be achieved in terminal:
+```bash
+scp source destination
+```
+where source and destination can be:
+- absolute or relative path to file (eg. `/tmp/foo.txt` or `./foo.txt`)
+- ssh file path (in the form ssh://[user]@[machine]/[path]
+
+It is also possible to perform file transfer between two distant machines, while being on the third machine:
+```bash
+scp ssh://user@machine1/path ssh://user@machine2/path
+```
+
+Concrete example can look like this:
+```bash
+scp ~/b2x/commerce.zip administrator@10.1.254.96:~/Downloads 
+```
