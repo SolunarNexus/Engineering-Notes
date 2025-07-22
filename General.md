@@ -61,7 +61,7 @@ The option `-type f` instead of `-name "*.java"` for command `find` will scan al
 
 ![[Pasted image 20250708145555.png]]
 
-*Factoring down*: everything that is not used by all service, we are gonna factor down = extract into individual contract.
+*Factoring down*: everything that is not used by all services, we are gonna factor down = extract into individual contract.
 
 *Factoring sideways*: everything that is not logically consistent, we are gonna factor sideways = extract into individual logically consistent contract.
 
@@ -70,7 +70,7 @@ The option `-type f` instead of `-name "*.java"` for command `find` will scan al
 #### Factoring metrics
 - Balance out two counter forces: **too many granular contracts** vs. **too few complex, poorly factored contracts**
  - Just one operation per contract is possible, but avoid it
- - Optimal No. of operations: 3-5 and no more then 20 (no more than 12)
+ - Optimal No. of operations: 3-5 and no more than 20 (no more than 12)
  - Size is **NOT** the metric of contract quality
  - Restrict contracts to `doSomething()` or `doOperation()`
  - (consumer) What does it take to do it? I don't know and I don't care. Because the more I know, the more I care. The more I care, the more I am coupled to you. The more you change, I change = **BAD**

@@ -267,3 +267,15 @@ On deployment with migration, the same thing is executed as in manual [[SAP Comm
 core-customize/sikob2c/sikob2cinitialdata/resources/update-cofig.json
 ```
 
+### Multiple JOINs in FlexibleSearch query
+Customize as you please
+```impex
+SELECT {z:code}, {dm:code}, {dcw:price}, {c:isocode},{dcw:weightthreshold} 
+FROM {DeliveryCostByWeight AS dcw 
+		JOIN ZoneDeliveryModeValue AS dmv ON {dcw:deliverymodevalue} = {dmv:pk}
+		JOIN Currency AS c ON {dmv:currency} = {c:pk} 
+		JOIN Zone AS z ON {dmv:zone} = {z:pk} 
+		JOIN DeliveryMode AS dm ON {dmv:deliverymode} = {dm:pk}} 
+WHERE {z:code} = 'de' AND {dm:code} LIKE '%DHL%' 
+ORDER BY {dcw:weightthreshold}
+```
