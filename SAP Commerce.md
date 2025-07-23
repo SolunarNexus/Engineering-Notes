@@ -269,6 +269,8 @@ core-customize/sikob2c/sikob2cinitialdata/resources/update-cofig.json
 
 ### Multiple JOINs in FlexibleSearch query
 Customize as you please
+
+Fetch delivery cost by weight info for Germany and DHL delivery mode:
 ```impex
 SELECT {z:code}, {dm:code}, {dcw:price}, {c:isocode},{dcw:weightthreshold} 
 FROM {DeliveryCostByWeight AS dcw 
@@ -278,4 +280,21 @@ FROM {DeliveryCostByWeight AS dcw
 		JOIN DeliveryMode AS dm ON {dmv:deliverymode} = {dm:pk}} 
 WHERE {z:code} = 'de' AND {dm:code} LIKE '%DHL%' 
 ORDER BY {dcw:weightthreshold}
+```
+
+Fetch basestores, their delivery modes with all supported payment modes and respective transaction limits in related basestore's currency:
+```impex
+SELECT {bs:uid} AS basestore, 
+        {dm:code} AS delivery_mode, 
+        {pm:code} AS payment_mode, 
+        {pmv:minimum} AS limit, 
+        {c:isocode} AS currency 
+FROM {DeliveryMode AS dm 
+        JOIN PaymentMode AS pm ON {dm:supportedpaymentmodesinternal} LIKE CONCAT('%', {pm:pk}, '%')
+        JOIN StandardPaymentModeValue AS pmv ON {pmv:paymentmode} = {pm:pk}
+        JOIN BaseStore2DeliveryModeRel AS s2d ON {s2d:target} = {dm:pk}
+        JOIN BaseStore AS bs ON {bs:pk} = {s2d:source}
+        JOIN Currency AS c ON {pmv:currency} = {c:pk}}
+WHERE {pmv:limittransaction} = 1 AND {bs:defaultcurrency} = {c:pk}
+ORDER BY {bs:uid}, {dm:code}, {pm:code}
 ```
