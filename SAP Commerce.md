@@ -240,6 +240,7 @@ You modify the existing models' attribute list in the corresponding `*-items.xml
 The attribute type can be simple as any existing type or a built-in Java type as well (e.g. `java.lang.String`, `java.lang.Double` etc.).
 
 > __CAUTION__: Do not forget to [[SAP Commerce#How to update the type system|update the type system]] after modifying `*-items.xml` file.
+
 ### How to drop records from a table
 Change `MyItemType` with the **table name** of your interest and import this impex via HAC (Console → ImpEx import):
 ```bash
@@ -247,6 +248,7 @@ $targetType=MyItemType
 REMOVE $targetType[batchmode=true];itemtype(code)[unique=true]
 ;$targetType
 ```
+
 ### How to update attribute(s) for all items
 Change `MyItemType` with the **table name**, specify the attribute of your interest and import this impex via HAC (Console → ImpEx import):
 ```bash
@@ -255,6 +257,7 @@ UPDATE $targetType[batchmode=true];itemtype(code)[unique=true];myAttribute
 ;$targetType;""
 ```
 It is possible to update as much attributes as you wish. However, note that this impex will change the attribute for **ALL** records. Useful for reverting to original state when populating a newly developed attribute.
+
 ### When to use deploy with migration
 1. on typesystem change
 2. modification of type translations
@@ -298,3 +301,46 @@ FROM {DeliveryMode AS dm
 WHERE {pmv:limittransaction} = 1 AND {bs:defaultcurrency} = {c:pk}
 ORDER BY {bs:uid}, {dm:code}, {pm:code}
 ```
+### Manual execution of a Business Process
+This example is tailored for initiating a process that sends an **registration email** after completed registration (locally the commerce waits for acknowledgement from the SCPI before sending email). It can be modified to execute virtually any existing business process with right context.
+```groovy
+import de.hybris.platform.processengine.BusinessProcessService
+import de.hybris.platform.core.model.user.CustomerModel
+import de.hybris.platform.servicelayer.model.ModelService
+import de.hybris.platform.store.BaseStoreModel
+import de.hybris.platform.catalog.model.CatalogVersionModel
+import de.hybris.platform.processengine.model.BusinessProcessModel
+
+// Get services
+def modelService = spring.getBean("modelService") as ModelService
+def businessProcessService = spring.getBean("businessProcessService") as BusinessProcessService
+def userService = spring.getBean("userService")
+def baseStoreService = spring.getBean("defaultBaseStoreService");
+
+// Example input data
+def processDefinitionName = "sikob2bRegistrationCompletedEmailProcess" // name as in your process definition XML	
+def customerUid = "b2b|admin@siko-b2b.eu" // existing customer in the system
+def baseStoreUid = "sikob2b-eu" // example base store UID
+
+// Load required models
+def customer = userService.getUserForUID(customerUid, CustomerModel.class)
+def baseStore = baseStoreService.getBaseStoreForUid(baseStoreUid) as BaseStoreModel
+
+// Create unique process code
+def processCode = "${processDefinitionName}-${System.currentTimeMillis()}"
+
+// Create process instance
+def process = businessProcessService.createProcess(processCode, processDefinitionName) as BusinessProcessModel
+
+// Set required context for your process
+process.setCustomer(customer)
+process.setSite(baseStore.getCmsSites()?.iterator()?.next()) // if your process needs a Site
+process.setStore(baseStore)
+
+// Save and start
+modelService.save(process)
+businessProcessService.startProcess(process)
+
+return "Started process: ${processCode}"
+```
+Import this script via `HAC -> Console -> Scripting languages` and switch to `commit` mode otherwise there will be no effect.
