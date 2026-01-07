@@ -71,7 +71,7 @@ To get `<System ID>, <Hardware Key>` and `<Product>` use command:
 ```
 ./license.sh -get
 ``` 
-and copy all the necessary information. `<Product>` is either `CPS_MSS` or `CPS_MYS` based on what type of DB you are using for local development:
+and copy all the necessary information. `<Product>` is either `CPS_MSS` or `CPS_MYS` baased on what type of DB you are using for local development:
 ![[Pasted image 20250321093813.png]]
 
 Example:
@@ -256,7 +256,7 @@ $targetType=MyItemType
 UPDATE $targetType[batchmode=true];itemtype(code)[unique=true];myAttribute
 ;$targetType;""
 ```
-It is possible to update as much attributes as you wish. However, note that this impex will change the attribute for **ALL** records. Useful for reverting to original state when populating a newly developed attribute.
+It is possible to update as many attributes as you wish. However, note that this impex will change the attribute for **ALL** records. Useful for reverting to original state when populating a newly developed attribute.
 
 ### When to use deploy with migration
 1. on typesystem change
@@ -323,7 +323,7 @@ def customerUid = "b2b|admin@siko-b2b.eu" // existing customer in the system
 def baseStoreUid = "sikob2b-eu" // example base store UID
 
 // Load required models
-def customer = userService.getUserForUID(customerUid, CustomerModel.class)
+def customer = userService.getUserForUID(customerUid, CustomerModelge.class)
 def baseStore = baseStoreService.getBaseStoreForUid(baseStoreUid) as BaseStoreModel
 
 // Create unique process code
