@@ -11,6 +11,80 @@ Docker is a virtualization tool used to ease development and deployment of appli
 	- **Base layer** - mostly linux base image (e.g. alpine:3.10 or different distro) because small in size
 	- *A number of intermediate layers/images can reside between base and app image/layer*
 	- **Application layer on top** - application image (e.g. postgres:10.10)
+###### Dockerfile
+- basically a recipe for building an image
+- describes base OS, installed software & dependencies, app code/binary, commands to run upon start
+```dockerfile
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY app.py .
+
+RUN apt-get update && apt-get install -y curl
+RUN npm install
+RUN pip install flask
+
+EXPOSE 5000 %% Documents that app uses the port; does NOT open the port %%
+
+ENV FLASK_ENV=production %% Environment variables (runtime) %%
+
+ARG VERSION=1.0 %% Build-time variables %%
+
+USER appuser %% Run as non-root (safer). By default containers run as root %%
+
+VOLUME /data %% Data persists outside container. Often handled at runtime %%
+
+%% ENTRYPOINT ["python"] Fixed startup command (cannot be overriden easily) %%
+%% CMD ["app.py"] %%
+
+CMD ["python", "app.py"]  
+```
+###### Docker Compose
+- a tool for running multiple containers together (easier)
+- most applications have multiple parts such as database, cache, background worker, web app, etc. and they need networking, environment variables, startup order of services or shared volumes etc. - docker compose handles all of that automatically; **everything starts together, connected and configured**
+- instead of writing complex commands for running N services like these:
+```shell
+docker run -p 6000:6000 --name postgres -e USER=admin -e PASSWORD=secret -d --net private-network postgres:latest
+
+docker run ...
+docker run ...
+```
+- you write a one file `docker-compose.yml` and execute it `docker compose up`
+-  example docker-compose file:
+```yaml
+services:
+  web:
+    image: node:18
+    ports:
+      - "3000:3000" %% or with .env file "${PORT}:3000" super useful %%
+    command: npm run dev %% overrides Dockerfile CMD %%
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: mydb 
+      
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile %% build from local Dockerfile %%
+    depends_on:
+      - db %% ensures container starts, but not that service is ready (retry) %%
+    restart: always ( or on-failure, unless-stopped, no) %% restart policy %%
+      
+volumes:
+  - db-data:/var/lib/postgresql/data
+```
+###### Volumes
+Restarting a docker container causes all configuration and data to be gone. For data persistence after container exits, there are container volumes which persist data **outside** containers.
+- It is a directory on the host machine managed by docker and which is mounted into a container
+- Databases **always** need a volume
+
+---
+
 #### Before & After Docker
 ##### App Development BEFORE Containers
 - Every developer that wants to work on some app, would need to install manually each service (that the app uses) on the OS directly (e.g. PostgreSQL + Redis services)
@@ -54,9 +128,7 @@ Kernel is the part that communicates with HW and applications run on kernel laye
 - In order to communicate with container through local host machine, there needs to be established a **binding port**:![[Pasted image 20260106173211.png]]
 - The host port must be unique for each container, otherwise there will be a conflict and container cannot start
 - There can be two containers with the same port (see picture)
-#### Container Volumes
-Restarting a docker container causes all configuration and data to be gone. For data persistence after container exits, there are container volumes.
-*TODO*
+
 #### Commands
 ```shell
 # list all running containers
@@ -106,6 +178,9 @@ docker network ls
 
 # create a new docker network
 docker network create <name>
+
+# read docker file and create an image with name (and optional tag)
+docker build -t <name:tag> .
 ```
 
 
