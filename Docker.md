@@ -3,8 +3,9 @@ Docker is a virtualization tool used to ease development and deployment of appli
 - A packaged application with all the necessary dependencies, configuration, and environment settings, and a start script
 - A portable artifact, easily shared and moved around = makes development and deployment more efficient
 - Stored in a repository (public/private)
+- Think of a class/template for container
 ###### Container
-- A running instance of an image (or a running environment for image)
+- A running instance of an image (think of an instance of a class)
 - Own isolated environment (achieved via namespaces)
 - Has its own virtual file system
 - Technically, container is consisted of layers of images stacked on top of each. The advantage of layers is decoupling - in case an image changes, only that changed image is downloaded
@@ -12,38 +13,48 @@ Docker is a virtualization tool used to ease development and deployment of appli
 	- *A number of intermediate layers/images can reside between base and app image/layer*
 	- **Application layer on top** - application image (e.g. postgres:10.10)
 ###### Dockerfile
-- basically a recipe for building an image
+- basically a template for building an image (think of class code)
 - describes base OS, installed software & dependencies, app code/binary, commands to run upon start
+- always called "Dockerfile" and nothing else
+- every change to Dockerfile means rebuilding an image because the changes would not reflect in the old image
 ```dockerfile
 FROM alpine:latest
 
 WORKDIR /app
 
+# executes on the HOST env
 COPY app.py .
 
+# executes INSIDE the container env
 RUN apt-get update && apt-get install -y curl
 RUN npm install
 RUN pip install flask
 
-EXPOSE 5000 %% Documents that app uses the port; does NOT open the port %%
+# Documents that app uses the port; does NOT open the port - that is done via docker run command
+EXPOSE 5000 
 
 ENV FLASK_ENV=production %% Environment variables (runtime) %%
 
 ARG VERSION=1.0 %% Build-time variables %%
 
-USER appuser %% Run as non-root (safer). By default containers run as root %%
+# Run as non-root (safer). By default containers run as root
+USER appuser
 
-VOLUME /data %% Data persists outside container. Often handled at runtime %%
+# Data persists outside container. Often handled at runtime
+VOLUME /data 
 
-%% ENTRYPOINT ["python"] Fixed startup command (cannot be overriden easily) %%
-%% CMD ["app.py"] %%
+# Fixed startup command (cannot be overriden easily)
+# ENTRYPOINT ["python"] 
+# CMD ["app.py"]
 
+# Entry point command. CMD with JSON array syntax is preffered in contrast with `CMD python app.py`. Without JSON array syntax docker uses the default shell /bin/sh to run the command. This can be problematic as the docker hides the fact that it's using the shell. It might cause unexpected behavior or errors.
 CMD ["python", "app.py"]  
 ```
 ###### Docker Compose
 - a tool for running multiple containers together (easier)
 - most applications have multiple parts such as database, cache, background worker, web app, etc. and they need networking, environment variables, startup order of services or shared volumes etc. - docker compose handles all of that automatically; **everything starts together, connected and configured**
 - instead of writing complex commands for running N services like these:
+- regarding environment variables; it is probably better to define them externally in a docker-compose file (rather than in Dockerfile). This way we can override them in docker-compose file (if something changes) instead of rebuilding the image (as in the case of env variables in Dockerfile)
 ```shell
 docker run -p 6000:6000 --name postgres -e USER=admin -e PASSWORD=secret -d --net private-network postgres:latest
 
@@ -79,9 +90,14 @@ volumes:
   - db-data:/var/lib/postgresql/data
 ```
 ###### Volumes
-Restarting a docker container causes all configuration and data to be gone. For data persistence after container exits, there are container volumes which persist data **outside** containers.
-- It is a directory on the host machine managed by docker and which is mounted into a container
+Restarting or removing a docker container causes all configuration and data to be gone. For that case, there are container volumes which persist data **outside** containers.
+- It is a directory in the host machine's physical file system (managed by docker) and which is mounted into the container's virtual file system
+- All data is replicated if changed in either directory (virtual/physical)
 - Databases **always** need a volume
+- **Host volumes** - you decide where on the host file system the reference is made. Created with `docker run -v /host/dir:/virtual/dir`
+- **Anonymous volumes** - you specify just the virtual directory. The reference on the host file system is created and managed by docker automatically. Created with 
+  `docker run -v /virtual/dir`
+- **Named volumes** - improvement of anonymous volumes. You specify the name of the reference on the host file system. Created with `docker run -v name:/virtual/dir`. Then it is possible to reference that volume by name - you do not have to know the specific path to volume. *Should be used in production and overall*
 
 ---
 
