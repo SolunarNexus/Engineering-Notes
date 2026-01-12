@@ -34,3 +34,13 @@ The default GC initially stores all the instances in the so-called Young Generat
 - marking objects in the heap that are still in use
 - and removing (sweeping) all the other objects
 GC also optimizes this process by observing the lifetime of objects. If some objects are still in use after some time, the GC assumes they are important for the run of the program and will still be in use in the future. Such objects are moved to the so-called Old Generation heap. The GC then does *mark and sweep* on Old Generation heap way less often and the number of objects participating in Young Generation heap decreases which makes garbage collection more efficient.
+### String Immutability
+Refers to immutability of String objects in a memory. The benefits are:
+- **Saves memory** - upon creation of a string variable, the string object is stored in the "string pool" in memory. All subsequent string variables with the same value point to the same object is the string pool. With mutable strings this wouldn't be possible (the changes in the string object would reflect in all instances pointing to it)
+- **Thread safety** - threads can safely access the string objects without the risk of introducing inconsistent state or unexpected behavior
+- **Security** - prevents change of referenced string object which might pose a security risk
+### Exceptions
+### Method .equals() vs ===
+### Map implementation
+### HashTable implementation
+### Multi-threading
