@@ -39,8 +39,16 @@ Refers to immutability of String objects in a memory. The benefits are:
 - **Saves memory** - upon creation of a string variable, the string object is stored in the "string pool" in memory. All subsequent string variables with the same value point to the same object is the string pool. With mutable strings this wouldn't be possible (the changes in the string object would reflect in all instances pointing to it)
 - **Thread safety** - threads can safely access the string objects without the risk of introducing inconsistent state or unexpected behavior
 - **Security** - prevents change of referenced string object which might pose a security risk
+### Pass-by-value
+Java always passes objects by value BUT that value is the reference (kinda pass-by-reference). 
 ### Exceptions
-### Method .equals() vs ===
+#### Checked
+An exception that is checked for at compile time. The user has to deal with such an exception if the method being called could throw such exception. Dealing with checked exceptions can be:
+1. treating the method call with a try-catch block
+2. treating the method (client-side) signature with *throws* keyword + checked exception class name - passes the responsibility to deal with the exception to a caller
+#### Unchecked
+All exceptions derived from the `RuntimeException` class. The caller does not have to deal with the exception at compile time (but should prepare for such cases) 
+### Method .equals() vs ==
 ### Map implementation
 ### HashTable implementation
 ### Multi-threading
