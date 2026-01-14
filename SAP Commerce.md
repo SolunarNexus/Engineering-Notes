@@ -259,15 +259,15 @@ UPDATE $targetType[batchmode=true];itemtype(code)[unique=true];myAttribute
 It is possible to update as many attributes as you wish. However, note that this impex will change the attribute for **ALL** records. Useful for reverting to original state when populating a newly developed attribute.
 
 ### When to use deploy with migration
-1. on typesystem change
-2. modification of type translations
-3. we add a new custom extension to the project
-4. on every commerce upgrade (due to possible type changes in the commerce core)
+1. On typesystem change
+2. On modification of type translations
+3. On adding a new custom extension to the project
+4. On every commerce upgrade (due to possible type changes in the commerce core)
 In general, when there are modifications to `*-items.xml` or `*.properties` files.
 
 On deployment with migration, the same thing is executed as in manual [[SAP Commerce#How to update the type system|type system update]] with migration configuration defined in:
 ```
-core-customize/sikob2c/sikob2cinitialdata/resources/update-cofig.json
+core-customize/sikob2c/sikob2cinitialdata/resources/update-config.json
 ```
 
 ### Multiple JOINs in FlexibleSearch query
