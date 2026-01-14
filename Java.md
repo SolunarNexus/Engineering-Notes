@@ -173,6 +173,65 @@ When the appropriate exception handler is found, the runtime system passes the e
 ![[Pasted image 20260114141444.png]]
 <sup>Searching the call stack for the exception handler</sup>
 
+#### Advantages
+1. **Separation of error-handling code from "Regular" code** - solves problems of traditional error-management techniques (returning error code), where the actual logic can be lost in a spaghetti code of error detection, handling, and reporting. Consider
+```java
+errorCodeType readFile {
+	initialize errorCode = 0;
+    
+    // open the file;
+    if (theFileIsOpen) {
+        // determine the length of the file;
+        if (gotTheFileLength) {
+            // allocate that much memory;
+            if (gotEnoughMemory) {
+                // read the file into memory;
+                if (readFailed) {
+                    errorCode = -1;
+                }
+            } else {
+                errorCode = -2;
+            }
+        } else {
+            errorCode = -3;
+        }
+        // close the file;
+        if (theFileDidntClose && errorCode == 0) {
+            errorCode = -4;
+        } else {
+            errorCode = errorCode and -4;
+        }
+    } else {
+        errorCode = -5;
+    }
+    return errorCode;
+}
+```
+and the same code but with the use of exceptions:
+```java
+readFile {
+    try {
+        // open the file;
+        // determine its size;
+        // allocate that much memory;
+        // read the file into memory;
+        // close the file;
+    } catch (fileOpenFailed) {
+       // doSomething;
+    } catch (sizeDeterminationFailed) {
+       // doSomething;
+    } catch (memoryAllocationFailed) {
+       // doSomething;
+    } catch (readFailed) {
+       // doSomething;
+    } catch (fileCloseFailed) {
+       // doSomething;
+    }
+}
+```
+2. **Propagation errors up the call stack** - only methods that are interested in errors have to worry about detecting errors, all subsequent methods between the point of throwing exception and the method that cares about that exception don't have to do nothing except specifying that they may throw an exception using `throws` clause.
+3. **Grouping and differentiating error types** - because all exceptions are objects, the grouping and categorizing is a natural outcome of the class hierarchy. This way we are able to catch the whole hierarchy of exceptions (e.g. `IOException`) 
+
 #### Checked Exception
 Represents an exceptional condition that application should anticipate and recover from (e.g. supplying a path to non-existent file in the constructor of `java.io.FileReader`). These exceptions are checked for at compile time. The code that might throw checked exception must honor the *Catch of Specify Requirement* which means that the code must do either of:
 1. Enclose the method call with a try-catch block
@@ -180,22 +239,64 @@ Represents an exceptional condition that application should anticipate and recov
 Either way, the caller **must** deal with the exception. All exceptions are checked exceptions except `Error`, `RunTimeException` and their subclasses.
 
 #### Unchecked Exception
-All exceptions of type `RuntimeException`or `Error` and their subclasses. Represents exceptional conditions that are external (`Error`) or internal (`RuntimeException`) to the application, and that the application usually cannot anticipate or recover from. The `Error` can be caused by system or hardware malfunction external to the application. The `RuntimeException` usually indicate programming bugs internal to the application. The caller does not have to deal with the exception at compile time (but should prepare for such cases).
+All exceptions of type `RuntimeException`or `Error` and their subclasses. Represents exceptional conditions that are external (`Error`) or internal (`RuntimeException`) to the application, and that the application usually cannot anticipate or recover from. 
 
+The `Error` can be caused by system or hardware malfunction external to the application and that usually prevent the JVM from running.
+
+The `RuntimeException` usually indicate programming bugs internal to the application. The caller does not have to deal with the exception at compile time (but should prepare for such cases).
+
+![[Pasted image 20260114175851.png]]
+<sup>The Throwable hierarchy</sup>
 #### Handling Exceptions
 Exceptions are handled using try-catch-finally block of code where:
 - `try` block encapsulates the code that might throw exceptions
 - `catch` block is an exception handler that handles the type of exception specified in the argument
 - `finally` block contains the code that is executed always regardless what happens in try/catch block
-The `finally` block is a key tool for preventing resource leaks and closing a file or other resource that must be closed after the work is done. An alternative to `finally` is using *try-with-resources* statement which automatically releases system resources when no longer needed. 
+
+General example:
 ```java
-// use of try-with-resources statement
+public void writeList() {
+    PrintWriter out = null;
+
+    try {
+        out = new PrintWriter(new FileWriter("OutFile.txt"));
+        
+        for (int i = 0; i < SIZE; i++) {
+            out.println("Value at: " + i + " = " + list.get(i));
+        }
+    } catch (IndexOutOfBoundsException e) {
+        System.err.println("IndexOutOfBoundsException: " +  e.getMessage());
+    } catch (IOException e) {
+        System.err.println("Caught IOException: " +  e.getMessage());
+    } finally {
+        if (out != null) out.close();
+    }
+}
+```
+
+The `finally` block is a key tool for preventing resource leaks and clean-up e.g. closing a file or other resource when no longer needed. An alternative to `finally` is using *try-with-resources* statement which automatically releases system resources after exiting the block.
+```java
 static String readFirstLineFromFile(String path) throws IOException {
+    // use of try-with-resources statement
     try (BufferedReader br = new BufferedReader(new FileReader(path))) {
         return br.readLine();
     }
 }
 ```
+
+Note that in case of exception, the runtime system inspects the `catch` clauses in a top-down manner. The clause whose argument's type matches the thrown exception type **first** is selected for handling the exception. Therefore, the `catch` clauses should be ordered from the most specialized to the most generic. For example if `Exception e` was the argument of the first `catch` clause, such code would end with error saying that the exception was already caught. Consider:
+```java
+try {
+    // some IO code
+} catch (IOException ioe) {
+    // IOException is a supertype of FileNotFoundException - compiler error
+} catch (FileNotFoundException fnfe) {
+
+}
+```
+
+#### Creating custom Exceptions
+The general rule: *"If a client can reasonably be expected to recover from an exception, make it a checked exception. If a client cannot do anything to recover from the exception, make it an unchecked exception."*
 
 More at  https://dev.java/learn/exceptions/
 
