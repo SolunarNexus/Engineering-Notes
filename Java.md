@@ -302,6 +302,25 @@ More at  https://dev.java/learn/exceptions/
  
  ---
  
+### Collections
+Represent a set if interfaces that model different ways of storing data in different data structures. For each interface, at least one implementation is provided. Choosing the right implementation (and interface) depends on what is your intention. 
+
+#### Benefits over traditional data structures
+1. A collection tracks the number of elements it stores
+2. The capacity is not limited (the only limitation is available memory)
+3. Control over what elements are stored in a collection - e.g. prevent null values
+4. Ability to be queried for the presence of a given element
+5. Operations for intersecting or merging with another collection
+6. And more...
+
+#### Iterables
+The main category of collections are those implementing the *Iterable* interface directly or indirectly. You are able to iterate over an object implementing this interface. 
+
+![[Pasted image 20260115130537.png]]
+<sup>The collection interface hierarchy</sup>
+
+---
+
 ### Method .equals() vs ==
 ### Map implementation
 ### HashTable implementation
