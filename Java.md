@@ -318,10 +318,47 @@ The main category of collections are those implementing the *Iterable* interface
 
 ![[Pasted image 20260115130537.png]]
 <sup>The collection interface hierarchy</sup>
+![[Pasted image 20260118153409.png]]<sup>Closeup on collection hierarchy</sup>
+
+#### Hashmaps
+The classic data structures for storing key-value pairs. Map interface hierarchy is separate from collections - collection represents a group of elements (values only) i.e. they are conceptually different.
+![[Pasted image 20260118153600.png]]
+<sup>The map interface hierarchy</sup>
+![[Pasted image 20260118153630.png]]
+<sup>Closeup on map hierarchy</sup>
+The key of an entry serves for identification of a value. The hashcode of the key is used for that. The type of the key is extremely important - while it is possible to use a mutable key, it is dangerous as mutating it may lead to changing its hashcode value and its identity. This may make the entry unrecoverable or return a different entry when querying a map. In short: it can corrupt the map.
+
+##### HashMap implementation details
+Uses a hash table internally which is organized into an array of buckets. Initially, HashMap allocates 16 buckets in heap memory. Each bucket references a singly-linked list containing one or more entries. 
+![[Pasted image 20260118162419.png]]
+<sup>Example of HashMap</sup>
+HashMap has also a so-called **form factor** i.e. how full the map can become before it automatically allocates more memory and rehashes its contents. By default the form factor is 75% i.e. after reaching 75% of capacity -> allocate more memory.
+
+When a key-value pair is inserted, the hash code of the key is calculated using the `hashCode()` method, and then an index is derived to find the bucket (array position) using a **hash function** (e.g. modulo size of the map).
+
+A collision can occur in case that two different keys map to the same bucket. Their hashcode can differ, but hash function can place two objects in the same bucket. In case of a collision, HashMap does :
+- Check if both keys have the same hash code and are equal using `equals()` method. If yes then the old value is overwritten with the new one
+- Otherwise, add the new key-value pair to the linked list
+Upon retrieving, the HashMap:
+- Calculates the hash code of a given key
+- Calculates the bucket index from hash code (applying hash function)
+- Goes to the bucket and iterate through the linked list until the element's key is not equal to the given key using `equals()` method.
+![[Pasted image 20260118165728.png]]<sup>Collision in HashMap using Linked List</sup>
+
+Starting from Java 8, when a number of nodes within a single bucket passes a threshold called *Treefiy Threshold* which is by default 8, the HashMap converts the internal structure of that bucket from a linked list to a balanced tree. This optimizes lookup efficiency from `O(n)` to `O(log n)`.The reverse operation applies when the size of HashMap shrinks under certain threshold (tree -> linked list).
+![[Pasted image 20260118165649.png]]
+<sup>Collision in HashMap using balanced Tree</sup>
+
+##### HashMap vs TreeMap vs LinkedHashMap
+All of them implement `Map` interface and offer mostly the same functionality. The most important difference is the order in which iteration through the entries will happen.
+- `HashMap` makes absolutely no guarantees about the iteration order. It can (and will) even change completely after its size exceeds a certain threshold (then re-hashing occurs)
+- `TreeMap` will iterate according to the "natural ordering" of the keys according to their `compareTo()` method (or an externally supplied `Comparator`). Additionally, it implements the [`SortedMap`](http://java.sun.com/javase/6/docs/api/java/util/SortedMap.html) interface, which contains methods that depend on this sort order.
+- `LinkedHashMap` will iterate in the order in which the entries were put into the map
+
+More at https://dev.java/learn/api/collections-framework/
 
 ---
 
 ### Method .equals() vs ==
-### Map implementation
-### HashTable implementation
+
 ### Multi-threading
