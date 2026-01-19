@@ -1,42 +1,52 @@
 > *Mainly notes about internal details of how Java does the magic.*
 
-### Basics
-#### Class
-A template/blueprint for object creation. Represents a class of objects that share the same characteristics a.k.a are of the same kind.
-```java
-class Bicycle {
-    int cadence = 0;
-    int speed = 0;
-    int gear = 1;
+### Core Concepts
+#### JDK vs JRE vs JVM
+##### JRE - Java Runtime Environment
+Contains everything needed to **run** any java program:
+- [[#Java Standard Library]]
+- [[#JVM - Java Virtual Machine]]
+JVM would take the java program, link all the classes and dependencies from the Java Standard library that it needs to execute the program and run.
 
-    void changeCadence(int newValue) {
-         cadence = newValue;
-    }
+##### Java Standard Library
+The set of helper classes and files to enable java do what it has to do. It contains the main java packages such as:
+- *java.lang.\** - String, Math, Exception, Throwable, Object (root of the all other java classes)
+- *java.util.\** - List, Map, Set, Collection
+- *java.io.\** - input and output
+- *java.sql.\** - interaction with databases
 
-    void changeGear(int newValue) {
-         gear = newValue;
-    }
+##### JVM - Java Virtual Machine
+In simplicity, takes responsibility for executing the java program. It loads up the byte code of all .class files (compiled .java files) into memory and executes the program. Behind the scenes takes care of all the stuff to run your program smoothly and you don't have to be aware of it e.g.:
+- Ensures that the program runs smoothly on whatever platform without your co-operation
+- Handles memory and [[#Garbage Collector|garbage collection]] automatically
+- Handles multi-threading (if the program uses it)
+- Built-in security checks
 
-    void speedUp(int increment) {
-         speed = speed + increment;   
-    }
+##### JDK - Java Development Kit
+Enables the development of java programs. Contains everything needed for creation, modification, compilation, debugging, testing, and running java programs:
+- [[#JRE - Java Runtime Environment]] for executing java programs
+- The java compiler - *javac*
+- Java Library source code (in addition to binaries in [[#JRE - Java Runtime Environment|JRE]])
+- Debugger
+- Monitoring tools - e.g. *jconsole*
+- Tools for creating and managing JAR files
+- ...and many more tools for creation, testing, using and more (a lot)
+![[Pasted image 20260111175409.png]]
 
-    void applyBrakes(int decrement) {
-         speed = speed - decrement;
-    }
-}
-```
-More at https://dev.java/learn/classes-objects/
+---
+#### Garbage Collector
+Basically manages the memory of the program behind the scenes at runtime (and you don't have to). It removes the objects from memory that are not used anymore. The object is marked for removal if there are **no** references pointing to that instance.
 
-#### Object
-An instance of a class. In software, it is a bundle of related state and behavior. For instance, a dog has the state (name, color, breed) and behavior (barking, fetching, sleeping). An object stores its state in *fields* and exposes its behavior through *methods* (or functions in functional languages). Methods operate on object's internal state and serve as the primary mechanism for object-object communication.
+The default GC initially stores all the instances in the so-called Young Generation heap. After some time the GC inspects the Young Generation heap - *mark and sweep* action. *Mark and sweep* action consists of 
+- marking objects in the heap that are still in use
+- and removing (sweeping) all the other objects
+GC also optimizes this process by observing the lifetime of objects. If some objects are still in use after some time, the GC assumes they are important for the run of the program and will still be in use in the future. Such objects are moved to the so-called Old Generation heap. The GC then does *mark and sweep* on Old Generation heap way less often and the number of objects participating in Young Generation heap decreases which makes garbage collection more efficient.
 
-More at https://dev.java/learn/classes-objects/
+---
+#### Interfaces
+An interface is a group of declarations of related functionality/methods a class promises to provide. Defines a contract between a class and the outside world (e.g. caller) and this contract is enforced at the build time by compiler. 
 
-#### Interface
-A group of declarations of related functionality/methods a class promises to provide. Defines a contract between a class and the outside world (e.g. caller) and this contract is enforced at the build time by compiler. 
-
-Interface is a reference type just like a [[#Class]] (which means interface can be used as a type for objects whose class implements that interface), that can contain only:
+Interface is a reference type just like a class (which means interface can be used as a type for objects whose class implements that interface), that can contain only:
 - constants
 - method signatures (abstract method)
 - default methods (with default modifier) (can define method's body)
@@ -100,16 +110,21 @@ public class OperateBMW760i implements OperateCar {
 
 More at https://dev.java/learn/interfaces/
 
-#### Package
-A namespace that organizes a set of related classes and interfaces (think of folders in a PC). To make types easier to find and use, to avoid naming conflicts, and to control access, programmers bundle groups of related types into packages. Benefits:
+---
+#### Packages
+A package is a namespace that organizes a set of related classes and interfaces (think of folders in a PC). To make types easier to find and use, to avoid naming conflicts, and to control access, programmers bundle groups of related types into packages. 
+
+Benefits:
 - you and other programmers can easily determine that types in the same package are related
 - you and other programmers can easily find the types
 - the names of types will not conflict with the type names in other packages
-- you can allow types within the package to have unrestricted access to one another yet still restrict access for types outside the package 
+- you can allow types within the package to have unrestricted access to one another yet still restrict access for types outside the package
+
 Every file in Java **must** have specified package name. 
 
 More at https://dev.java/learn/packages/
 
+---
 #### Contract of equals() and hashCode()
 >**TLDR;** `equals()` compares inner state of objects, `hashCode()` provides unique integer identifier for objects and is especially useful with hash table data structures (`HashMap`), `==` operator compares references of two objects.
 
@@ -208,52 +223,55 @@ Java SE specifies a contract for `hashCode()` as well:
 Because of the second criterion, **if we override the `equals()` we must override `hashCode()` and vice versa**. 
 
 ---
-### JDK vs JRE vs JVM
-#### JRE - Java Runtime Environment
-Contains everything needed to **run** any java program:
-- [[#Java Standard Library]]
-- [[#JVM - Java Virtual Machine]]
-JVM would take the java program, link all the classes and dependencies from the Java Standard library that it needs to execute the program and run.
-#### Java Standard Library
-The set of helper classes and files to enable java do what it has to do. It contains the main java packages such as:
-- *java.lang.\** - String, Math, Exception, Throwable, Object (root of the all other java classes)
-- *java.util.\** - List, Map, Set, Collection
-- *java.io.\** - input and output
-- *java.sql.\** - interaction with databases
-#### JVM - Java Virtual Machine
-In simplicity, takes responsibility for executing the java program. It loads up the byte code of all .class files (compiled .java files) into memory and executes the program. Behind the scenes takes care of all the stuff to run your program smoothly and you don't have to be aware of it e.g.:
-- Ensures that the program runs smoothly on whatever platform without your co-operation
-- Handles memory and [[#Garbage Collector|garbage collection]] automatically
-- Handles multi-threading (if the program uses it)
-- Built-in security checks
-#### JDK - Java Development Kit
-Enables the development of java programs. Contains everything needed for creation, modification, compilation, debugging, testing, and running java programs:
-- [[#JRE - Java Runtime Environment]] for executing java programs
-- The java compiler - *javac*
-- Java Library source code (in addition to binaries in [[#JRE - Java Runtime Environment|JRE]])
-- Debugger
-- Monitoring tools - e.g. *jconsole*
-- Tools for creating and managing JAR files
-- ...and many more tools for creation, testing, using and more (a lot)
-![[Pasted image 20260111175409.png]]
-### Garbage Collector
-Basically manages the memory of the program behind the scenes at runtime (and you don't have to). It removes the objects from memory that are not used anymore. The object is marked for removal if there are **no** references pointing to that instance.
+#### Object Immutability
+An immutable object has **an internal state that remains constant after object's creation.** Meaning that an immutable object guarantees that it will behave in the same way during its whole lifetime.
 
-The default GC initially stores all the instances in the so-called Young Generation heap. After some time the GC inspects the Young Generation heap - *mark and sweep* action. *Mark and sweep* action consists of 
-- marking objects in the heap that are still in use
-- and removing (sweeping) all the other objects
-GC also optimizes this process by observing the lifetime of objects. If some objects are still in use after some time, the GC assumes they are important for the run of the program and will still be in use in the future. Such objects are moved to the so-called Old Generation heap. The GC then does *mark and sweep* on Old Generation heap way less often and the number of objects participating in Young Generation heap decreases which makes garbage collection more efficient.
+To make an object immutable **we must guarantee its internal state won't change** during its lifetime:
+```java
+// Final class cannot be extended
+public final class Money {
+	// All primitive data types won't change with final; that's guaranteed
+    private final double amount;
+    // With higher-level objects we must rely on their immutability. To maintain
+    // object's immutability event with mutable fields (e.g. Collections or
+    // Arrays), return defensive copies.
+    private final Currency currency;
 
----
-### String Immutability
-Refers to immutability of String objects in a memory. The benefits are:
-- **Saves memory** - upon creation of a string variable, the string object is stored in the "string pool" in memory. All subsequent string variables with the same value point to the same object is the string pool. With mutable strings this wouldn't be possible (the changes in the string object would reflect in all instances pointing to it)
-- **Thread safety** - threads can safely access the string objects without the risk of introducing inconsistent state or unexpected behavior
-- **Security** - prevents change of referenced string object which might pose a security risk
+	// Constructor is the only place allowed to set the internal state
+	public Money(double amount, Currency currency) {
+        this.amount = amount;
+        this.currency = currency;
+    }
+
+	// Only read-only methods can be exposed
+	public Currency getCurrency() {
+        return currency;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+}
+```
+
+The general benefits are:
+- **Thread safety** - ability to share safely such objects among multiple threads without the risk of introducing inconsistent state or unexpected behavior
+- **No side effects** - none of the objects referencing immutable object will notice any difference and that is a plus during debugging (you don't have to inspect where the value changed)
+- **Security** - inner state cannot be altered maliciously after creation
+- **Caching** - ideal for caching mechanisms as their state does not change
+
+On top of that, Strings in Java are immutable with additional benefit:
+- **Saves memory** - upon creation of a string variable, the string object is stored in the "string pool" in memory. All subsequent string variables with the same value point to the same object in the string pool. With mutable strings this wouldn't be possible (the changes in the string object would reflect in all instances pointing to it)
 
 ---
-### Pass-by-value
-Java always passes objects by value BUT that value is the reference (kinda pass-by-reference). It is possible to modify the internal state of the object, but it is impossible to change reference to another object - the reference to the original object may be changed but it would be available only inside the current scope (method's body).
+#### Parameter Passing Mechanism
+Java is a **"pass-by-value"** language always passing arguments by value. 
+
+In case of **primitive values**, the value is **simply copied** inside stack memory which is then passed to the method.  
+
+In case of **non-primitive** higher-level objects, the **reference** in the stack memory pointing to the data in the heap **is copied** and passed to the method. Very similar to the "pass-by-reference" mechanism but with a distinction:
+- it is **possible** to modify the internal state of the object and that change reflects outside the scope
+- it is **impossible** to assign another object to the same reference - the local variable can be reassigned but the change would take effect only inside the current scope (method's body).
 
 ---
 ### Exceptions
@@ -397,8 +415,7 @@ The general rule: *"If a client can reasonably be expected to recover from an ex
 
 More at  https://dev.java/learn/exceptions/
  
- ---
- 
+---
 ### Collections
 Represent a set if interfaces that model different ways of storing data in different data structures. For each interface, at least one implementation is provided. Choosing the right implementation (and interface) depends on what is your intention. 
 
@@ -455,6 +472,4 @@ All of them implement `Map` interface and offer mostly the same functionality. T
 More at https://dev.java/learn/api/collections-framework/
 
 ---
-
-
 ### Multi-threading
