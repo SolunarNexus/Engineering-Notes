@@ -110,6 +110,103 @@ Every file in Java **must** have specified package name.
 
 More at https://dev.java/learn/packages/
 
+#### Contract of equals() and hashCode()
+>**TLDR;** `equals()` compares inner state of objects, `hashCode()` provides unique integer identifier for objects and is especially useful with hash table data structures (`HashMap`), `==` operator compares references of two objects.
+
+By default, the `Object` class implements both methods. Providing a custom implementation of these methods is not always needed. For entity classes and **objects having intrinsic identity**, the default implementation suffices. But for **value objects** it is better to base equality on their properties - providing custom implementation of `equals()` and `hashCode()`. 
+
+Custom implementation typically is not written by hand, one can:
+- Generate methods using IDE. 
+- Use helper classes of [Apache Commons Lang](https://www.baeldung.com/java-commons-lang-3) and [Google Guava](https://www.baeldung.com/whats-new-in-guava-19) to simplify writing these methods.
+- Use annotation `@EqualsAndHashCode` from [Project Lombok](https://www.baeldung.com/intro-to-project-lombok)
+##### equals()
+By default, the implementation of `equals()` method compares object identities, related to `==` operator comparing object references. To change this behavior in custom classes, we must override this method in order to compare the state (field values) of objects as well.
+
+Java SE defines a contract that the custom implementation of the `equals()` method must fulfill:
+- **reflexive** - an object must equal itself.
+- **symmetric** - `a.equals(b)` must return the same result as `b.equals(a)`.
+- **transitive** - if `a.equals(b)` and `b.equals(c),` then also `a.equals(c)`.
+- **consistent** - the value of `equals()` should change only if a property that is contained in `equals()` changes (no randomness allowed).
+
+Example:
+```java
+// "Money" is a custom class
+
+@Override
+public boolean equals(Object o) {
+	// 1. Objects are equal if they share the same reference (identity)
+    if (o == this)
+        return true;
+    // 2. Objects need to be of the same instance class in order to be equal
+    if (!(o instanceof Money))
+        return false;
+    Money other = (Money)o;
+    // 3. Objects are equal if their attributes are equal as well
+    boolean currencyEquals = 
+		(this.currency == null && other.currency == null) ||
+		(this.currency != null && this.currency.equals(other.currency));
+		
+    return this.amount == other.amount && currencyEquals;
+}
+```
+
+The contract of `equals()` can be broken via inheritance when extending a class that has overriden the `equals()` method as well. To avoid such mistakes, it is better to favor composition over inheritance.
+
+Example:
+```java
+class A {
+	private int num;
+	
+	@Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof A))
+            return false;
+        A other = (A)o;
+        
+        return this.num == other.num; 
+    }
+}
+
+class B extends A {
+	private String word;
+	
+	@Override
+	public boolean equals(Object o){
+		if (o == this)
+            return true;
+        if (!(o instanceof B))
+            return false;
+        B other = (B)o;
+
+		boolean wordEquals = 
+			(this.word == null && other.word == null) || 
+			(this.word != null && this.word.equals(other.word));
+
+        return this.num == other.num && wordEquals; 
+	}
+}
+
+A first = new A(42);
+B second = new B(42, "word");
+
+// As expected. Class A is not an instance of class B
+second.equals(first) => false 
+// Wrong. Ignoring the new attribute "word". Breaks the symmetry.
+first.equals(second) => true
+```
+
+##### hashCode()
+Now the `hashCode()` method returns an integer identifying the current instance of the class. The default implementation usually converts the internal address of the object into an integer, but it is JVM-specific.
+
+Java SE specifies a contract for `hashCode()` as well:
+- **internal consistency** - the value of `hashCode()` may only change if a property acting in `equals()` changes.
+- **equals consistency** - objects that are equal to each other must return the same hash code.
+- **collisions** - unequal objects may have the same hashCode.
+
+Because of the second criterion, **if we override the `equals()` we must override `hashCode()` and vice versa**. 
+
 ---
 ### JDK vs JRE vs JVM
 #### JRE - Java Runtime Environment
@@ -336,7 +433,7 @@ HashMap has also a so-called **form factor** i.e. how full the map can become be
 
 When a key-value pair is inserted, the hash code of the key is calculated using the `hashCode()` method, and then an index is derived to find the bucket (array position) using a **hash function** (e.g. modulo size of the map).
 
-A collision can occur in case that two different keys map to the same bucket. Their hashcode can differ, but hash function can place two objects in the same bucket. In case of a collision, HashMap does :
+A collision can occur in case that two different keys map to the same bucket. Their hash code can differ, but hash function can place two objects in the same bucket. In case of a collision, HashMap does :
 - Check if both keys have the same hash code and are equal using `equals()` method. If yes then the old value is overwritten with the new one
 - Otherwise, add the new key-value pair to the linked list
 Upon retrieving, the HashMap:
@@ -359,6 +456,5 @@ More at https://dev.java/learn/api/collections-framework/
 
 ---
 
-### Method .equals() vs ==
 
 ### Multi-threading
