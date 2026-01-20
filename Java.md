@@ -1,4 +1,27 @@
-> *Mainly notes about internal details of how Java does the magic.*
+> *Notes about internal details of how Java does the magic.*
+> 
+> Concepts, internal working, and interview questions: https://javaconceptoftheday.com/
+> Official Java tutorial with focus on syntax: https://dev.java/learn/
+
+1. [[#Core Concepts|Core Concepts]]
+	1. [[#Core Concepts#JDK vs JRE vs JVM|JDK vs JRE vs JVM]]
+	2. [[#Core Concepts#Garbage Collector|Garbage Collector]]
+	3. [[#Core Concepts#Interfaces|Interfaces]]
+	4. [[#Core Concepts#Packages|Packages]]
+	5. [[#Core Concepts#Contract of equals() and hashCode()|Contract of equals() and hashCode()]]
+	6. [[#Core Concepts#Object Immutability|Object Immutability]]
+	7. [[#Core Concepts#Parameter Passing Mechanism|Parameter Passing Mechanism]]
+2. [[#Exceptions|Exceptions]]
+	1. [[#Exceptions#Advantages|Advantages]]
+	2. [[#Exceptions#Checked Exception|Checked Exception]]
+	3. [[#Exceptions#Unchecked Exception|Unchecked Exception]]
+	4. [[#Exceptions#Handling Exceptions|Handling Exceptions]]
+	5. [[#Exceptions#Creating custom Exceptions|Creating custom Exceptions]]
+3. [[#Collections|Collections]]
+	1. [[#Collections#Benefits over traditional data structures|Benefits over traditional data structures]]
+	2. [[#Collections#Iterables|Iterables]]
+	3. [[#Collections#Hashmap|Hashmap]]
+4. [[#Multi-threading|Multi-threading]]
 
 ### Core Concepts
 #### JDK vs JRE vs JVM
@@ -434,7 +457,7 @@ The main category of collections are those implementing the *Iterable* interface
 <sup>The collection interface hierarchy</sup>
 ![[Pasted image 20260118153409.png]]<sup>Closeup on collection hierarchy</sup>
 
-#### Hashmaps
+#### Hashmap
 The classic data structures for storing key-value pairs. Map interface hierarchy is separate from collections - collection represents a group of elements (values only) i.e. they are conceptually different.
 ![[Pasted image 20260118153600.png]]
 <sup>The map interface hierarchy</sup>
@@ -451,8 +474,8 @@ HashMap has also a so-called **form factor** i.e. how full the map can become be
 When a key-value pair is inserted, the hash code of the key is calculated using the `hashCode()` method, and then an index is derived to find the bucket (array position) using a **hash function** (e.g. modulo size of the map).
 
 A collision can occur in case that two different keys map to the same bucket. Their hash code can differ, but hash function can place two objects in the same bucket. In case of a collision, HashMap does :
-- Check if both keys have the same hash code and are equal using `equals()` method. If yes then the old value is overwritten with the new one
-- Otherwise, add the new key-value pair to the linked list
+1. Check if both keys have the same hash code and are equal in accordance with `equals()` method. If yes then it is a duplicate and the old value is overwritten with a new one.
+2. Otherwise, add the new key-value pair to the linked list
 Upon retrieving, the HashMap:
 - Calculates the hash code of a given key
 - Calculates the bucket index from hash code (applying hash function)
@@ -468,6 +491,46 @@ All of them implement `Map` interface and offer mostly the same functionality. T
 - `HashMap` makes absolutely no guarantees about the iteration order. It can (and will) even change completely after its size exceeds a certain threshold (then re-hashing occurs)
 - `TreeMap` will iterate according to the "natural ordering" of the keys according to their `compareTo()` method (or an externally supplied `Comparator`). Additionally, it implements the [`SortedMap`](http://java.sun.com/javase/6/docs/api/java/util/SortedMap.html) interface, which contains methods that depend on this sort order.
 - `LinkedHashMap` will iterate in the order in which the entries were put into the map
+
+##### HashSet
+Internally utilizes a [[#Hashmap]] to store its elements, which is created in HashSet's constructor. The elements contained in the HashSet act as keys of that HashMap instance. The value associated with those keys will be always a constant (e.g. `private static final Object PRESENT = new Object()`).
+
+Possible implementation of HashSet's constructor:
+```java
+public class HashSet<E> {
+	// Internal map instance
+	private transient HashMap<E, Object> map;
+	// Dummy value associated with every key in the map
+	private static final Object PRESENT = new Object();
+	
+	public HashSet() {
+	        map = new HashMap<>();
+	}
+	// other methods
+}
+```
+
+Insertion can look like this:
+```java
+// ...
+public boolean add(E e) {
+	// 1. When inserting a duplicate, the value gets updated and the old
+	// value is returned (in this case nothing gets updated as new == old)
+	// 2. Inserting a unique value, would produce a null 
+	return map.put(e, PRESENT) == null;
+}
+// ...
+```
+
+Removal is similar:
+```java
+public boolean remove(Object o) {
+	// 1. When the key e is present in the map such that Object.equals(o, e)
+	// then it is removed from the map and the associated value is returned
+	// 2. If the key was absent, null is returned
+	return map.remove(o) == PRESENT;
+}
+```
 
 More at https://dev.java/learn/api/collections-framework/
 
