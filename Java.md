@@ -535,4 +535,132 @@ public boolean remove(Object o) {
 More at https://dev.java/learn/api/collections-framework/
 
 ---
-### Multi-threading
+### Concurrency
+Involves managing multiple threads to perform tasks simultaneously which in turn improves performance and responsiveness of modern applications. Common concepts:
+1. **Threads** - independent units of execution
+2. **Executors** - frameworks for managing thread pools
+3. **Locks** - mechanism for synchronized access to shared resources
+4. **ForkJoinPool** - construct for recursive task splitting and merging
+5. **Parallel Streams** - declarative parallel processing
+6. **Virtual Threads** - optimized light-weight threads
+
+#### Thread
+In theory a thread is the smallest unit of execution that can be scheduled by OS scheduler.
+
+In Java environment, `Thread` usually refers to the *standard* thread introduced from version 1.0 which represents the core abstraction of concurrency in Java. Internally it is a JVM-managed abstraction over an OS-level thread. The `Thread` is used to create *platform threads* that are typically mapped 1:1 to OS kernel threads. The OS allocates a large stack and other resources to platform threads (those resources are limited). 
+
+However, using OS kernel threads for implementation fails to meet today's concurrency requirements. Two major problems:
+1. Threads cannot match the scale of the domain's unit of concurrency. Today's applications allow up to millions of transactions, users or sessions. However, the number of threads supported by the kernel is much less. **Therefore, a thread for every user, transaction, or session is often not feasible**. 
+2. Most concurrent applications need some synchronization between threads for every request. Due to this, **an expensive context switch happens between kernel threads**.
+
+Any implementation of a thread depends on two constructs:
+1. `Task` - a sequence of instructions that can suspend itself for some blocking operation
+2. `Scheduler` - takes care of assigning the task to the CPU and reassigns the CPU from a paused task
+
+In order to suspend a task/thread, it's required to store the entire call stack, and similarly retrieve the call stack on resuming a task/thread. This results in an expensive operation in terms of time and memory. 
+
+Then, usually, we don't want to block standard threads and that may be solved with the use of non-blocking I/O APIs and asynchronous APIs but that may clutter the code and make debugging harder. 
+
+For that matter [[#Virtual Thread|virtual threads]] are a better alternative in some cases.
+
+##### Construction
+There are two primary ways to create a thread:
+1. Extending the `Thread` class and overriding its `run()` method
+```java
+class MyThread extends Thread {  
+
+	@Override  
+	public void run() {  
+		System.out.println("Thread extending Thread class is running!");  
+	}  
+}  
+  
+// To start it:  
+// MyThread thread = new MyThread();  
+// thread.start();
+```
+
+2. Implementing the `Runnable` interface and overriding its `run()` method. Then the instance is passed to the `Thread` constructor. This is generally preferred way as it allows to extend other classes and promotes a better separation of concerns.
+```java
+class MyRunnable implements Runnable {  
+  
+    @Override  
+    public void run() {  
+        System.out.println("Thread implementing Runnable is running!");  
+    }  
+}  
+  
+// To start it:  
+// Thread thread = new Thread(new MyRunnable());  
+// thread.start();
+```
+
+To execute a thread, the `start()` method is used which creates a new thread and invokes the `run()` method that begins the code execution in that new thread. Calling `run()` directly will execute the logic, but in the **current thread**. 
+
+##### Lifecycle
+- **NEW** - created but has not yet been started (`new Thread(...)`)
+- **RUNNABLE** - executing in the JVM (either currently running or ready to run, waiting for CPU window) (`thead.start()`)
+- **BLOCKED** - waiting for a monitor lock to enter a synchronized block/method
+- **WAITING** - waiting for another thread to perform a particular action (e.g. calling `wait()`, `join()`)
+- **TIMED_WAITING** - waiting for another thread to perform an action for a specified waiting time (e.g. calling `sleep(long millis)`, `wait(long millis)`, `join(long millis)`)
+- **TERMINATED** - completed its execution or has been aborted. End state.
+![[Pasted image 20260121151313.png]]
+
+##### Synchronization
+One of the main concerns in concurrency is thread safety. When multiple threads access and modify shared data, we can run into a race condition. 
+
+A **race condition** occurs when the outcome of the program on the unpredictable sequence or timing of operations performed by multiple threads. This leads with high probability to incorrect and/or inconsistent results. In short, all threads are "racing" to access/change the data.  The problem often occurs when one thread does a "check-then-act" and another thread does something to the shared value between the "check" and "act":
+```java
+if (x == 5) // The "Check"
+{
+   y = x * 2; // The "Act"
+
+   // If another thread changed x between "if (x == 5)" and "y = x * 2" above,
+   // y will not be equal to 10.
+   // y could be 10, or it could be anything, you have no way of knowing.
+}
+```
+
+To avoid a race condition,  the critical section must be treated with a *lock*. In java there is a built-in mechanism under `synchronized` keyword that ensures that only one thread can execute a specific block of code or method at a time. Internally it works by acquiring an intrinsic lock (also known as a *monitor lock*) associated with an object. 
+
+When a thread calls a `synchronized` method, it acquires the lock on the `this` object. If another thread tries to call **any** `synchronized` method on the _same_ object, it will be blocked until the first thread releases the lock.
+```java
+// Example of synchronized method 
+class Counter {  
+    private int count = 0;
+    
+	// Locks on the 'Counter' object instance  
+    public synchronized void increment() { 
+        count++;  
+    }  
+  
+    public synchronized int getCount() {  
+        return count;  
+    }  
+}
+```
+
+Synchronized blocks are similar but allow for a more flexible control. They allow to specify which object's lock to acquire, and synchronize only the critical section of code, rather than the entire method (even though, the critical section can be extracted to a separate method).
+```java
+// Example of synchronized block
+class AtomicCounter {  
+    private int count = 0;
+    // A dedicated lock object  
+    private final Object lock = new Object();
+  
+    public void increment() { 
+	    // Locks on the 'lock' object   
+        synchronized (lock) { 
+            count++;  
+        }  
+    }  
+  
+    public int getCount() {  
+        synchronized (lock) {  
+            return count;  
+        }  
+    }  
+}
+```
+
+#### Virtual Thread
