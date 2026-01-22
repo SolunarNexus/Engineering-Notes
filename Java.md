@@ -4,13 +4,14 @@
 > Official Java tutorial with focus on syntax: https://dev.java/learn/
 
 1. [[#Core Concepts|Core Concepts]]
-	1. [[#Core Concepts#JDK vs JRE vs JVM|JDK vs JRE vs JVM]]
-	2. [[#Core Concepts#Garbage Collector|Garbage Collector]]
-	3. [[#Core Concepts#Interfaces|Interfaces]]
-	4. [[#Core Concepts#Packages|Packages]]
-	5. [[#Core Concepts#Contract of equals() and hashCode()|Contract of equals() and hashCode()]]
-	6. [[#Core Concepts#Object Immutability|Object Immutability]]
-	7. [[#Core Concepts#Parameter Passing Mechanism|Parameter Passing Mechanism]]
+	1. [[#Core Concepts#Program Lifecycle|Program Lifecycle]]
+	2. [[#Core Concepts#JDK vs JRE vs JVM|JDK vs JRE vs JVM]]
+	3. [[#Core Concepts#Garbage Collector|Garbage Collector]]
+	4. [[#Core Concepts#Interfaces|Interfaces]]
+	5. [[#Core Concepts#Packages|Packages]]
+	6. [[#Core Concepts#Contract of equals() and hashCode()|Contract of equals() and hashCode()]]
+	7. [[#Core Concepts#Object Immutability|Object Immutability]]
+	8. [[#Core Concepts#Parameter Passing Mechanism|Parameter Passing Mechanism]]
 2. [[#Exceptions|Exceptions]]
 	1. [[#Exceptions#Advantages|Advantages]]
 	2. [[#Exceptions#Checked Exception|Checked Exception]]
@@ -21,9 +22,16 @@
 	1. [[#Collections#Benefits over traditional data structures|Benefits over traditional data structures]]
 	2. [[#Collections#Iterables|Iterables]]
 	3. [[#Collections#Hashmap|Hashmap]]
-4. [[#Multi-threading|Multi-threading]]
+4. [[#Concurrency|Concurrency]]
+	1. [[#Concurrency#Threads|Threads]]
+	2. [[#Concurrency#Synchronization|Synchronization]]
+	3. [[#Concurrency#Virtual Threads|Virtual Threads]]
 
 ### Core Concepts
+#### Program Lifecycle
+After editing the program in e.g. text editor or an IDE, the program is then compiled into a *bytecode* with the Java's compiler `javac`. The bytecode is machine/platform independent code that is runnable at every machine that has installed [[#JRE - Java Runtime Environment|JRE]]. The output of the compiler is the *.class* which encapsulates the byte code.
+
+The program is executed by [[#JVM - Java Virtual Machine|JVM]] which loads the bytecode into the memory where the interpreter reads the bytecode instruction by instruction and the JIT (Just-In-Time) compiler translates frequently executed bytecode into a native machine code for better performance. 
 #### JDK vs JRE vs JVM
 ##### JRE - Java Runtime Environment
 Contains everything needed to **run** any java program:
@@ -536,6 +544,8 @@ More at https://dev.java/learn/api/collections-framework/
 
 ---
 ### Concurrency
+> List of questions with answers on various topics on concurrency: https://solutionsarchitecture.medium.com/java-concurrency-tutorial-from-basics-to-advanced-89f3f6d1a9b9
+
 Involves managing multiple threads to perform tasks simultaneously which in turn improves performance and responsiveness of modern applications. Common concepts:
 1. **Threads** - independent units of execution
 2. **Executors** - frameworks for managing thread pools
@@ -544,7 +554,7 @@ Involves managing multiple threads to perform tasks simultaneously which in turn
 5. **Parallel Streams** - declarative parallel processing
 6. **Virtual Threads** - optimized light-weight threads
 
-#### Thread
+#### Threads
 In theory a thread is the smallest unit of execution that can be scheduled by OS scheduler.
 
 In Java environment, `Thread` usually refers to the *standard* thread introduced from version 1.0 which represents the core abstraction of concurrency in Java. Internally it is a JVM-managed abstraction over an OS-level thread. The `Thread` is used to create *platform threads* that are typically mapped 1:1 to OS kernel threads. The OS allocates a large stack and other resources to platform threads (those resources are limited). 
@@ -606,7 +616,7 @@ To execute a thread, the `start()` method is used which creates a new thread and
 - **TERMINATED** - completed its execution or has been aborted. End state.
 ![[Pasted image 20260121151313.png]]
 
-##### Synchronization
+#### Synchronization
 One of the main concerns in concurrency is thread safety. When multiple threads access and modify shared data, we can run into a race condition. 
 
 A **race condition** occurs when the outcome of the program on the unpredictable sequence or timing of operations performed by multiple threads. This leads with high probability to incorrect and/or inconsistent results. In short, all threads are "racing" to access/change the data.  The problem often occurs when one thread does a "check-then-act" and another thread does something to the shared value between the "check" and "act":
@@ -663,4 +673,52 @@ class AtomicCounter {
 }
 ```
 
-#### Virtual Thread
+##### Locks
+While synchronized is powerful, it uses its intrinsic lock (*monitor lock*), which is an all-or-nothing approach. It's not possible to try to acquire a such lock without blocking, nor to interrupt a thread waiting for a lock. 
+
+**ReentrantLock** provides more flexibility and control than `synchronized`. It's the concrete implementation of the `Lock` interface. It's possible to acquire a lock without blocking, and to interrupt a thread waiting for a lock. Additionally, it can be configured to "fairness", meaning that the access is granted to the longest-waiting thread in situations that multiple threads are trying to acquire a lock.
+```java
+import java.util.concurrent.locks.ReentrantLock;  
+  
+class AdvancedCounter {  
+    private int count = 0;  
+    private final ReentrantLock lock = new ReentrantLock();  
+  
+    public void increment() {  
+        lock.lock(); // Acquire the lock  
+        try {  
+            count++;  
+        } finally {  
+            lock.unlock(); // Always release the lock in a finally block!  
+        }  
+    }  
+    // ... getCount() would also use lock/unlock  
+}
+```
+
+**`volatile`** keyword doesn't provide atomicity like locks, but guarantees visibility. When a `volatile` variable is modified, that change will be visible to other threads *immediately*. Similarly, any read will always fetch the latest value from main memory, bypassing CPU caches. 
+- Often useful for flags or status variables  where one thread writes and other threads read. 
+- It's not suitable for compound operation (like incrementing) because two threads can read the latest value, but both would carry out the same update operation, thus the update would be effectively just one instead of two (two threads read `count = 5`, both write back `6`).
+
+##### Communication
+Threads need to coordinate their activities beyond just mutual exclusion. They might need to wait for a certain condition to be met by another thread, or signal that a condition has changed. 
+
+**`wait()`** causes the current thread to release the lock on the object and enter the `WAITING` state until another thread invokes `notify()` or `notifyAll()` on the same object, or the specific timeout elapses. The thread then re-acquires the lock before continuing.
+
+**`notify()`** wakes up a single thread that is waiting on this object's lock. If multiple threads are waiting, only one (arbitrarily chosen) will be notified.
+
+**`notifyAll()`** wakes up *all* threads waiting on this object's lock.
+
+**IMPORTANT: all methods can only be called from within a `synchronized` block or method!**
+
+#### Virtual Threads
+Light-weight threads managed by the JVM instead of the OS scheduler. They run on the *carrier thread* which is the actual kernel thread used under the hood (i.e. *platform thread*). As a result, their allocation doesn't require a system call and they're free of the expensive OS's context switch, which means it is possible to have many more virtual threads. 
+
+Another advantage is that blocking a virtual thread doesn't block the carrier thread and that makes blocking virtual threads a much more cheaper operation - the JVM will schedule another virtual thread, leaving the carrier thread unblocked.
+
+Ultimately, with the virtual threads the need for non-blocking I/O or async APIs disappears and that should result in more readable code that is easier to understand and debug. However, it is till possible to block the carrier thread e.g. by calling a native method and performing blocking operation from there.
+
+Virtual threads are suitable for executing tasks that spend most of their time blocked. It is unwise to use them for long-running CPU-intensive tasks.
+
+![[Pasted image 20260122134638.png]]<sup>Architecture overview of virtual threads</sup>
+
