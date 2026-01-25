@@ -25,6 +25,23 @@ Spring Framework is the basis for all other projects that exist nowadays in the 
 - Spring for Kafka
 - and many more...
 
+The key benefits to using Spring Framework:
+- **[[#Dependency Injection & Inversion of Control|Dependency Injection]] and loose coupling** - objects don't create their dependencies, easy to swap implementations, improved testability, much less boilerplate code
+
+- **Modularity and flexibility** - only needed modules are used, framework can be used in variety of context ranging from standalone applications to distributed systems.
+
+- **Testing** - easy mocking, lightweight testing
+
+- **Efficient development** - allows to focus on business values straight away rather than configuration, dependencies, boilerplate code - infrastructure is handled by spring
+
+- **POJO-based development** - no need to extend framework classes, no forced interfaces, minimal framework lock-in
+
+- **Externalized configuration** - no hard-coded configuration
+
+- **Consistent programming model** - across all spring modules and projects
+
+- **Community** - spring is an open-source project with a large and active community providing a ton of resources and support for developers
+
 #### Dependency Injection & Inversion of Control
 > It's a design pattern where dependencies are supplied to objects at runtime instead of the objects creating them themselves.
 
@@ -51,7 +68,7 @@ IoC is also known as the *Hollywood Principle* - don't call us, we will call you
 *TODO*
 
 #### IoC Container
-> It's the engine that makes Dependency Injection possible. It's a part of the framework which manages objects' lifecycle (dependencies a.k.a beans), and their dependencies.
+> It's the engine that makes Dependency Injection possible. It's a part of the framework which manages instantiating, configuring, and assembling beans (a.k.a objects).
 
 In theory it's a design pattern where the management of object creation and their lifecycle is transferred from the business logic to the framework. More specifically it is responsible for:
 - Object creation - also called [[#Beans]]
@@ -59,4 +76,45 @@ In theory it's a design pattern where the management of object creation and thei
 - Management the lifecycle of beans
 - Reading configuration metadata
 
+The instructions on how to create, configure, and assemble are read from *configuration metadata*. The configuration metadata can be represented as:
+- Annotated component class
+- Configuration class with factory methods
+- External XML file(s)
+- Groovy script
+
+In practice, the application classes are combined with configuration metadata so that, after the IoC container is created and initialized, you have a fully configured and executable system or application (in other words, *application classes are created with necessary dependencies*).
+![[Pasted image 20260125150023.png]]
+<sup>How IoC container works in Spring</sup>
+
+Two types of containers are provided in Spring:
+1. `BeanFactory` container 
+	- The basic container providing support for DI
+	- The beans are instantiated only when explicitly requested
+	- Lightweight and suitable for resource-constrained environments
+2. `ApplicationContext` container - 
+	- An advanced container built on top of `BeanFactory`
+	- Adds an extra features such as internationalization, event propagation, integration with other Spring modules, etc.
+	- The beans are instantiated and configured on startup
+
+
 ##### Beans
+> Objects managed under the IoC container. The result of an application class + configuration metadata.
+
+Within container the beans are represented as `BeanDefinition` which is essentially a recipe for creating one or more objects. A `BeanDefinition` contains:
+- A package-qualified class name - typically the actual implementation class of the bean
+- Behavioral configuration elements - how should bean behave in the container (scope, lifecycle callback, etc.)
+- References to other beans - dependencies
+- Other configuration settings - e.g. the max number of connections for bean managing connection pool
+
+When the container is asked to provide a bean, it looks at the `BeanDefinition` of the named bean and uses the configuration metadata encapsulated in the bean definition to create (or acquire) an actual object.
+
+The beans are created via class [[Java#Annotations|annotations]] provided by Spring, such as `@Component`, `@Service`, `@Repository`, `@Controller`, `@RestController`, etc. 
+
+Another way of creating beans is via configuration class annotated with `@Configuration`, by using annotation `@Bean` on methods returning an instance of a class that you want Spring to manage.
+
+###### Scopes
+A way of telling a container how many instances of the bean should be created:
+- **Singleton** - for every dependency, exactly one instance will be created and shared
+- **Prototype** - for each dependency, a new instance will be created
+- **Session** - for each user HTTP session, a new instance will be created
+- and more...

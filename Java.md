@@ -156,6 +156,10 @@ Every file in Java **must** have specified package name.
 More at https://dev.java/learn/packages/
 
 ---
+#### Annotations
+*TODO*
+
+---
 #### Contract of equals() and hashCode()
 >**TLDR;** `equals()` compares inner state of objects, `hashCode()` provides unique integer identifier for objects and is especially useful with hash table data structures (`HashMap`), `==` operator compares references of two objects.
 
