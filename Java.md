@@ -452,7 +452,7 @@ More at  https://dev.java/learn/exceptions/
  
 ---
 ### Collections
-Represent a set if interfaces that model different ways of storing data in different data structures. For each interface, at least one implementation is provided. Choosing the right implementation (and interface) depends on what is your intention. 
+Represent a set of interfaces that model different ways of storing data in different data structures. For each interface, at least one implementation is provided. Choosing the right implementation (and interface) depends on what is your intention. 
 
 #### Benefits over traditional data structures
 1. A collection tracks the number of elements it stores
@@ -477,7 +477,7 @@ The classic data structures for storing key-value pairs. Map interface hierarchy
 <sup>Closeup on map hierarchy</sup>
 The key of an entry serves for identification of a value. The hashcode of the key is used for that. The type of the key is extremely important - while it is possible to use a mutable key, it is dangerous as mutating it may lead to changing its hashcode value and its identity. This may make the entry unrecoverable or return a different entry when querying a map. In short: it can corrupt the map.
 
-##### HashMap implementation details
+##### Under the hood
 Uses a hash table internally which is organized into an array of buckets. Initially, HashMap allocates 16 buckets in heap memory. Each bucket references a singly-linked list containing one or more entries. 
 ![[Pasted image 20260118162419.png]]
 <sup>Example of HashMap</sup>

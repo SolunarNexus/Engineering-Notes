@@ -274,7 +274,7 @@ core-customize/sikob2c/sikob2cinitialdata/resources/update-config.json
 Customize as you please
 
 Fetch delivery cost by weight info for Germany and DHL delivery mode:
-```impex
+```sql
 SELECT {z:code}, {dm:code}, {dcw:price}, {c:isocode},{dcw:weightthreshold} 
 FROM {DeliveryCostByWeight AS dcw 
 		JOIN ZoneDeliveryModeValue AS dmv ON {dcw:deliverymodevalue} = {dmv:pk}
@@ -286,7 +286,7 @@ ORDER BY {dcw:weightthreshold}
 ```
 
 Fetch basestores, their delivery modes with all supported payment modes and respective transaction limits in related basestore's currency:
-```impex
+```sql
 SELECT {bs:uid} AS basestore, 
         {dm:code} AS delivery_mode, 
         {pm:code} AS payment_mode, 
@@ -301,6 +301,34 @@ FROM {DeliveryMode AS dm
 WHERE {pmv:limittransaction} = 1 AND {bs:defaultcurrency} = {c:pk}
 ORDER BY {bs:uid}, {dm:code}, {pm:code}
 ```
+
+Fetch products that are eligible for BAM delivery and don't have defined their dimensions:
+```sql
+SELECT 
+	DISTINCT {p:code}, 
+	{st:code}, 
+	{p:sikoweight}, 
+	{psu:packageheight}, 
+	{psu:packagewidth}, 
+	{psu:packagelength} 
+FROM {Product AS p 
+		JOIN SapTransportTypeEnum AS st ON {p:transportrestriction} = {st:pk} 
+		JOIN ProductSellUnit AS psu ON {psu:product} = {p:pk}}
+WHERE {st:code} = 'DOPRAVABAM' 
+		AND {p:sikoweight} >= 5 
+		AND {psu:packageheight} IS NULL 
+		AND {psu:packagewidth} IS NULL 
+		AND {psu:packagelength} IS NULL
+```
+
+Fetch products with specific SAP status (ZI):
+```sql
+SELECT {p:code}, {pbs:sapstatus}, {bs:name} 
+FROM {Product AS p JOIN ProductBaseStore AS pbs ON {p:pk} = {pbs:product}
+		JOIN BaseStore AS bs ON {pbs:store} = {bs:pk}} 
+WHERE {pbs:sapstatus} = 'ZI' AND {bs:name} = 'SIKO B2C CZ'
+```
+
 ### Manual execution of a Business Process
 This example is tailored for initiating a process that sends an **registration email** after completed registration (locally the commerce waits for acknowledgement from the SCPI before sending email). It can be modified to execute virtually any existing business process with right context.
 ```groovy
@@ -323,7 +351,7 @@ def customerUid = "b2b|admin@siko-b2b.eu" // existing customer in the system
 def baseStoreUid = "sikob2b-eu" // example base store UID
 
 // Load required models
-def customer = userService.getUserForUID(customerUid, CustomerModelge.class)
+def customer = userService.getUserForUID(customerUid, CustomerModel.class)
 def baseStore = baseStoreService.getBaseStoreForUid(baseStoreUid) as BaseStoreModel
 
 // Create unique process code
@@ -344,3 +372,4 @@ businessProcessService.startProcess(process)
 return "Started process: ${processCode}"
 ```
 Import this script via `HAC -> Console -> Scripting languages` and switch to `commit` mode otherwise there will be no effect.
+
