@@ -329,6 +329,9 @@ FROM {Product AS p JOIN ProductBaseStore AS pbs ON {p:pk} = {pbs:product}
 WHERE {pbs:sapstatus} = 'ZI' AND {bs:name} = 'SIKO B2C CZ'
 ```
 
+```
+SELECT * FROM {SiteMapConfig AS smc JOIN SiteMapPage AS smp ON {smp.pk} IN {smc.sitemappages} } WHERE {smc.configid} = 'sikob2c-spa-czSiteMapConfig'
+```
 ### Manual execution of a Business Process
 This example is tailored for initiating a process that sends an **registration email** after completed registration (locally the commerce waits for acknowledgement from the SCPI before sending email). It can be modified to execute virtually any existing business process with right context.
 ```groovy
@@ -373,3 +376,18 @@ return "Started process: ${processCode}"
 ```
 Import this script via `HAC -> Console -> Scripting languages` and switch to `commit` mode otherwise there will be no effect.
 
+### Data export
+If pre-processing is needed, the best approach is via groovy script where FlexibleSearchService is called + some custom data operations.
+If original data suffice, then use ImpEx Export utility in HAC.  The needed export script can look something like this:
+```sql
+INSERT_UPDATE Customer; uid[unique=true]; customerID; sapConsumerID; contactEmail; type(code)
+"#% impex.setTargetFile( ""Customer_Export.csv"" );"
+```
+Then you can find the results in a created CronJob in Backoffice where the output file is located as well (`Target (Data)`). In the same cronjob you can find the Import Script with which you can import the exported data in another environment.
+
+Even better export script can contain FelxibleSearch query which can constrain the result dataset.
+```sql
+"#% impex.setTargetFile( ""Customer.csv"" );"
+INSERT_UPDATE Customer; uid[unique=true]; customerID; sapConsumerID; contactEmail; type(code)
+"#% impex.exportItems( ""Customer"" , false );"
+```

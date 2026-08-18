@@ -87,3 +87,24 @@ or
 ```bash
 scp ~/b2x/commerce.zip ssh://administrator@10.1.254.96:~/Downloads 
 ```
+
+---
+## Switch java versions
+Can be done manually via
+```bash
+sudo update-alternatives --config java
+```
+
+But the easiest way to install, switch, remove, and manage java versions is using SDKMAN! http://sdkman.io/usage.html
+Install it
+```bash
+curl -s "https://get.sdkman.io" | bash
+```
+list available java versions
+```bash
+sdk list java
+```
+install specific java
+```bash
+sdk install java 21.0.12-sapmchn
+```
